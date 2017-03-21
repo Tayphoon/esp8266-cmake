@@ -2,6 +2,8 @@ if(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
     set(ESP8266_SDK_BASE ${USER_HOME}/git/esp-open-sdk/sdk CACHE PATH "Path to the ESP8266 SDK")
 elseif(CMAKE_HOST_SYSTEM_NAME MATCHES "Windows")
     set(ESP8266_SDK_BASE ${USER_HOME}/dev/projects/esp-open-sdk CACHE PATH "Path to the ESP8266 SDK")
+elseif(CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
+    set(ESP8266_SDK_BASE /Volumes/ESPToolchain/sdk/ CACHE PATH "Path to the ESP8266 SDK")
 else()
     message(FATAL_ERROR "Unsupported build platforom.")
 endif()
@@ -65,12 +67,16 @@ target_link_libraries(ESP8266_SDK INTERFACE
 
 add_custom_target(
     firmware_binary ALL
-    COMMAND ${ESP8266_ESPTOOL} -bz ${ESP8266_FLASH_SIZE} -eo $<TARGET_FILE:firmware> -bo firmware_${FW_ADDR_1}.bin -bs .text -bs .data -bs .rodata -bc -ec -eo $<TARGET_FILE:firmware> -es .irom0.text firmware_${FW_ADDR_2}.bin -ec
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_SOURCE_DIR}/firmware
+    COMMAND ${ESP8266_ESPTOOL} -bz ${ESP8266_FLASH_SIZE} -eo $<TARGET_FILE:firmware> -bo ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_1}.bin -bs .text -bs .data -bs .rodata -bc -ec -eo $<TARGET_FILE:firmware> -es .irom0.text ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_2}.bin -ec
 )
-set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "firmware_${FW_ADDR_1}.bin firmware_${FW_ADDR_2}.bin")
+
+get_directory_property(extra_clean_files ADDITIONAL_MAKE_CLEAN_FILES)
+set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${extra_clean_files};${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_1}.bin;${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_2}.bin")
+#set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "firmware_${FW_ADDR_1}.bin firmware_${FW_ADDR_2}.bin")
 
 add_dependencies(firmware_binary firmware)
 
-add_custom_target(flash COMMAND ${ESP8266_ESPTOOL} -cp ${ESP8266_ESPTOOL_COM_PORT} -cf firmware_${FW_ADDR_1}.bin -ca 0x40000 -cf firmware_${FW_ADDR_2}.bin)
+add_custom_target(flash COMMAND ${ESP8266_ESPTOOL} -cp ${ESP8266_ESPTOOL_COM_PORT} -cf ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_1}.bin -ca 0x40000 -cf ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_2}.bin)
 
 add_dependencies(flash firmware_binary)
