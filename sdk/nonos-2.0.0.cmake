@@ -27,6 +27,12 @@ elseif (ESP8266_FLASH_SIZE MATCHES "2M")
             )
     set(FW_ADDR_1 0x00000)
     set(FW_ADDR_2 0x01010)
+elseif(ESP8266_FLASH_SIZE MATCHES "4M")
+    set_target_properties(firmware PROPERTIES
+            LINK_FLAGS "-L${ESP8266_SDK_BASE}/ld -Teagle.rom.addr.v6.ld"
+            )
+    set(FW_ADDR_1 0x00000)
+    set(FW_ADDR_2 0x40000)
 else()
     message(FATAL_ERROR "Unsupported flash size")
 endif()
@@ -74,6 +80,7 @@ target_link_libraries(ESP8266_SDK INTERFACE
 add_custom_target(
     firmware_binary ALL
     COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_SOURCE_DIR}/firmware
+    COMMAND ${ESP8266_XTENSA_SIZE} -A $<TARGET_FILE:firmware>
     COMMAND ${ESP8266_ESPTOOL} -bz ${ESP8266_FLASH_SIZE} -eo $<TARGET_FILE:firmware> -bo ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_1}.bin -bs .text -bs .data -bs .rodata -bc -ec -eo $<TARGET_FILE:firmware> -es .irom0.text ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_2}.bin -ec
 )
 

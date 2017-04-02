@@ -25,7 +25,13 @@ elseif (ESP8266_FLASH_SIZE MATCHES "2M")
             LINK_FLAGS "-L${ESP8266_SDK_BASE}/ld -Teagle.app.v6.new.2048.ld"
             )
     set(FW_ADDR_1 0x00000)
-    set(FW_ADDR_2 0x01010)
+    set(FW_ADDR_2 0x01000)
+elseif (ESP8266_FLASH_SIZE MATCHES "4M")
+    set_target_properties(firmware PROPERTIES
+            LINK_FLAGS "-L${ESP8266_SDK_BASE}/ld -Teagle.rom.addr.v6.ld"
+            )
+    set(FW_ADDR_1 0x00000)
+    set(FW_ADDR_2 0x40000)
 else()
     message(FATAL_ERROR "Unsupported flash size")
 endif()
@@ -41,40 +47,47 @@ target_include_directories(ESP8266_SDK INTERFACE
         ${ESP8266_SDK_BASE}/include/lwip/ipv6
         )
 
-find_library(ESP8266_SDK_LIB_CRYPTO crypto ${ESP8266_SDK_BASE}/lib)
-find_library(ESP8266_SDK_LIB_ESPNOW espnow ${ESP8266_SDK_BASE}/lib)
-find_library(ESP8266_SDK_LIB_JSON json ${ESP8266_SDK_BASE}/lib)
-find_library(ESP8266_SDK_LIB_LWIP lwip ${ESP8266_SDK_BASE}/lib)
-find_library(ESP8266_SDK_LIB_MESH mesh ${ESP8266_SDK_BASE}/lib)
-find_library(ESP8266_SDK_LIB_NET80211 net80211 ${ESP8266_SDK_BASE}/lib)
+find_library(ESP8266_SDK_LIB_CIROM cirom ${ESP8266_SDK_BASE}/lib)
+find_library(ESP8266_SDK_LIB_MIROM mirom ${ESP8266_SDK_BASE}/lib)
+find_library(ESP8266_SDK_LIB_HAL hal ${ESP8266_SDK_BASE}/lib)
 find_library(ESP8266_SDK_LIB_PHY phy ${ESP8266_SDK_BASE}/lib)
 find_library(ESP8266_SDK_LIB_PP pp ${ESP8266_SDK_BASE}/lib)
-find_library(ESP8266_SDK_LIB_PWM pwm ${ESP8266_SDK_BASE}/lib)
-find_library(ESP8266_SDK_LIB_SMARTCONFIG smartconfig ${ESP8266_SDK_BASE}/lib)
-find_library(ESP8266_SDK_LIB_SSL ssl ${ESP8266_SDK_BASE}/lib)
+find_library(ESP8266_SDK_LIB_NET80211 net80211 ${ESP8266_SDK_BASE}/lib)
+find_library(ESP8266_SDK_LIB_CRYPTO crypto ${ESP8266_SDK_BASE}/lib)
 find_library(ESP8266_SDK_LIB_WPA wpa ${ESP8266_SDK_BASE}/lib)
 find_library(ESP8266_SDK_LIB_WPS wps ${ESP8266_SDK_BASE}/lib)
+find_library(ESP8266_SDK_LIB_MAIN main ${ESP8266_SDK_BASE}/lib)
+find_library(ESP8266_SDK_LIB_FREERTOS freertos ${ESP8266_SDK_BASE}/lib)
+find_library(ESP8266_SDK_LIB_LWIP lwip ${ESP8266_SDK_BASE}/lib)
+find_library(ESP8266_SDK_LIB_SSL ssl ${ESP8266_SDK_BASE}/lib)
+find_library(ESP8266_SDK_LIB_JSON json ${ESP8266_SDK_BASE}/lib)
+find_library(ESP8266_SDK_LIB_SMARTCONFIG smartconfig ${ESP8266_SDK_BASE}/lib)
+find_library(ESP8266_SDK_LIB_PWM pwm ${ESP8266_SDK_BASE}/lib)
 
 target_link_libraries(ESP8266_SDK INTERFACE
         gcc
-        ${ESP8266_SDK_LIB_CRYPTO}
-        ${ESP8266_SDK_LIB_ESPNOW}
-        ${ESP8266_SDK_LIB_JSON}
-        ${ESP8266_SDK_LIB_LWIP}
-        ${ESP8266_SDK_LIB_MESH}
-        ${ESP8266_SDK_LIB_NET80211}
+        ${ESP8266_SDK_LIB_CIROM}
+        ${ESP8266_SDK_LIB_MIROM}
+        ${ESP8266_SDK_LIB_HAL}
         ${ESP8266_SDK_LIB_PHY}
         ${ESP8266_SDK_LIB_PP}
-        ${ESP8266_SDK_LIB_PWM}
-        ${ESP8266_SDK_LIB_SMARTCONFIG}
-        ${ESP8266_SDK_LIB_SSL}
+        ${ESP8266_SDK_LIB_NET80211}
+        ${ESP8266_SDK_LIB_CRYPTO}
         ${ESP8266_SDK_LIB_WPA}
         ${ESP8266_SDK_LIB_WPS}
+        ${ESP8266_SDK_LIB_MAIN}
+        ${ESP8266_SDK_LIB_FREERTOS}
+        ${ESP8266_SDK_LIB_LWIP}
+        ${ESP8266_SDK_LIB_SSL}
+        ${ESP8266_SDK_LIB_JSON}
+        ${ESP8266_SDK_LIB_SMARTCONFIG}
+        ${ESP8266_SDK_LIB_PWM}
         )
 
 add_custom_target(
     firmware_binary ALL
     COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_SOURCE_DIR}/firmware
+    COMMAND ${ESP8266_XTENSA_SIZE} -A $<TARGET_FILE:firmware>
     COMMAND ${ESP8266_ESPTOOL} -bz ${ESP8266_FLASH_SIZE} -eo $<TARGET_FILE:firmware> -bo ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_1}.bin -bs .text -bs .data -bs .rodata -bc -ec -eo $<TARGET_FILE:firmware> -es .irom0.text ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_2}.bin -ec
 )
 
