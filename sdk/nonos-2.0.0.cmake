@@ -29,7 +29,7 @@ elseif (ESP8266_FLASH_SIZE MATCHES "2M")
     set(FW_ADDR_2 0x01010)
 elseif(ESP8266_FLASH_SIZE MATCHES "4M")
     set_target_properties(firmware PROPERTIES
-            LINK_FLAGS "-L${ESP8266_SDK_BASE}/ld -Teagle.rom.addr.v6.ld"
+            LINK_FLAGS "-L${ESP8266_SDK_BASE}/ld -Teagle.app.v6.ld"
             )
     set(FW_ADDR_1 0x00000)
     set(FW_ADDR_2 0x40000)
