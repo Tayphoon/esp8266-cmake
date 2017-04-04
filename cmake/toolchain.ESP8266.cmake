@@ -37,8 +37,36 @@ message("Using " ${ESP8266_ESPTOOL} " esptool binary.")
 set(CMAKE_C_COMPILER ${ESP8266_XTENSA_C_COMPILER})
 set(CMAKE_CXX_COMPILER ${ESP8266_XTENSA_CXX_COMPILER})
 
-set(CMAKE_C_FLAGS "-Os -g -std=gnu99 -Wpointer-arith -Wno-implicit-function-declaration -Wundef -pipe -D__ets__ -DICACHE_FLASH -fno-inline-functions -ffunction-sections -nostdlib -mlongcalls -mtext-section-literals -falign-functions=4 -fdata-sections")
-set(CMAKE_CXX_FLAGS "-Os -g -D__ets__ -DICACHE_FLASH -mlongcalls -mtext-section-literals -fno-exceptions -fno-rtti -falign-functions=4 -std=c++11 -MMD -ffunction-sections -fdata-sections")
+# Optimization flags
+set(OPTIMIZATION_FLAGS "-Os -g")
+
+# Flags which control code generation and dependency generation, both for C and C++
+set(COMMON_FLAGS "-ffunction-sections -fdata-sections -falign-functions=4 \
+                  -mlongcalls \
+                  -nostdlib \
+                  -mtext-section-literals \
+                  -DICACHE_FLASH \
+                  -D__ets__")
+
+# Warnings-related flags relevant C
+set(COMMON_WARNING_FLAGS "-Wpointer-arith \
+                          -Wno-implicit-function-declaration \
+                          -Wundef")
+
+set(CMAKE_C_FLAGS "-std=gnu99 \
+                   -fno-inline-functions \
+                   -pipe \
+                   ${OPTIMIZATION_FLAGS} \
+                   ${COMMON_FLAGS} \
+                   ${COMMON_WARNING_FLAGS}")
+
+set(CMAKE_CXX_FLAGS "-std=gnu++11 \
+                     -fno-exceptions \
+                     -fno-rtti \
+                     -MMD \
+                     ${OPTIMIZATION_FLAGS} \
+                     ${COMMON_FLAGS}")
+
 set(CMAKE_EXE_LINKER_FLAGS "-nostdlib -Wl,--no-check-sections -Wl,-static -Wl,--gc-sections")
 
 set(CMAKE_C_LINK_EXECUTABLE "<CMAKE_C_COMPILER> <FLAGS> <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> -o <TARGET> -Wl,--start-group <OBJECTS> <LINK_LIBRARIES> -lc -Wl,--end-group")
