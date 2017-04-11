@@ -38,7 +38,11 @@ set(CMAKE_C_COMPILER ${ESP8266_XTENSA_C_COMPILER})
 set(CMAKE_CXX_COMPILER ${ESP8266_XTENSA_CXX_COMPILER})
 
 # Optimization flags
-set(OPTIMIZATION_FLAGS "-Os -g")
+if (ENABLE_GDB)
+    set(OPTIMIZATION_FLAGS "-Os -g")
+else()
+    set(OPTIMIZATION_FLAGS "-Og -ggdb")
+endif()
 
 # Flags which control code generation and dependency generation, both for C and C++
 set(COMMON_FLAGS "-ffunction-sections -fdata-sections -falign-functions=4 \
