@@ -32,7 +32,7 @@ elseif(ESP8266_FLASH_SIZE MATCHES "4M")
             LINK_FLAGS "-L${ESP8266_SDK_BASE}/ld -Teagle.app.v6.ld"
             )
     set(FW_ADDR_1 0x00000)
-    set(FW_ADDR_2 0x40000)
+    set(FW_ADDR_2 0x10000)
 else()
     message(FATAL_ERROR "Unsupported flash size")
 endif()
@@ -81,7 +81,8 @@ add_custom_target(
     firmware_binary ALL
     COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_SOURCE_DIR}/firmware
     COMMAND ${ESP8266_XTENSA_SIZE} -A $<TARGET_FILE:firmware>
-    COMMAND ${ESP8266_ESPTOOL} -bz ${ESP8266_FLASH_SIZE} -eo $<TARGET_FILE:firmware> -bo ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_1}.bin -bs .text -bs .data -bs .rodata -bc -ec -eo $<TARGET_FILE:firmware> -es .irom0.text ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_2}.bin -ec
+    #COMMAND ${ESP8266_ESPTOOL} -bz ${ESP8266_FLASH_SIZE} -eo $<TARGET_FILE:firmware> -bo ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_1}.bin -bs .text -bs .data -bs .rodata -bc -ec -eo $<TARGET_FILE:firmware> -es .irom0.text ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_2}.bin -ec
+    COMMAND ${ESP8266_ESPTOOL} elf2image -o ${PROJECT_SOURCE_DIR}/firmware/firmware_ $<TARGET_FILE:firmware>
 )
 
 get_directory_property(extra_clean_files ADDITIONAL_MAKE_CLEAN_FILES)
@@ -89,6 +90,7 @@ set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${extra_clean_f
 
 add_dependencies(firmware_binary firmware)
 
-add_custom_target(flash COMMAND ${ESP8266_ESPTOOL} -vv -cp ${ESP8266_ESPTOOL_COM_PORT} -cf ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_1}.bin -ca 0x40000 -cf ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_2}.bin)
+#add_custom_target(flash COMMAND ${ESP8266_ESPTOOL} -vv -cd nodemcu -cp ${ESP8266_ESPTOOL_COM_PORT} -cf ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_1}.bin -ca 0x40000 -cf ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_2}.bin)
+add_custom_target(flash COMMAND ${ESP8266_ESPTOOL} --port ${ESP8266_ESPTOOL_COM_PORT} write_flash ${FW_ADDR_1} ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_1}.bin ${FW_ADDR_2} ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_2}.bin)
 
 add_dependencies(flash firmware_binary)
