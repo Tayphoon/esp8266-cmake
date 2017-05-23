@@ -82,7 +82,7 @@ add_custom_target(
     COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_SOURCE_DIR}/firmware
     COMMAND ${ESP8266_XTENSA_SIZE} -A $<TARGET_FILE:firmware>
     #COMMAND ${ESP8266_ESPTOOL} -bz ${ESP8266_FLASH_SIZE} -eo $<TARGET_FILE:firmware> -bo ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_1}.bin -bs .text -bs .data -bs .rodata -bc -ec -eo $<TARGET_FILE:firmware> -es .irom0.text ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_2}.bin -ec
-    COMMAND ${ESP8266_ESPTOOL}.py elf2image -o ${PROJECT_SOURCE_DIR}/firmware/firmware_ $<TARGET_FILE:firmware>
+    COMMAND ${ESP8266_ESPTOOL} elf2image -o ${PROJECT_SOURCE_DIR}/firmware/firmware_ $<TARGET_FILE:firmware>
 )
 
 get_directory_property(extra_clean_files ADDITIONAL_MAKE_CLEAN_FILES)
@@ -91,6 +91,6 @@ set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${extra_clean_f
 add_dependencies(firmware_binary firmware)
 
 #add_custom_target(flash COMMAND ${ESP8266_ESPTOOL} -vv -cp ${ESP8266_ESPTOOL_COM_PORT} -cd nodemcu -cb 115200 -ca ${FW_ADDR_1} -cf  ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_1}.bin -ca ${FW_ADDR_2} -cf ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_2}.bin)
-add_custom_target(flash COMMAND ${ESP8266_ESPTOOL}.py -b 115200 --port ${ESP8266_ESPTOOL_COM_PORT} write_flash ${FW_ADDR_1} ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_1}.bin ${FW_ADDR_2} ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_2}.bin)
+add_custom_target(flash COMMAND ${ESP8266_ESPTOOL} -b 115200 --port ${ESP8266_ESPTOOL_COM_PORT} write_flash ${FW_ADDR_1} ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_1}.bin ${FW_ADDR_2} ${PROJECT_SOURCE_DIR}/firmware/firmware_${FW_ADDR_2}.bin)
 
 add_dependencies(flash firmware_binary)
